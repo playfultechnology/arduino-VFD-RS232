@@ -44,10 +44,11 @@
 // Wiring-S           5         6          4
 // Sanguino          13        14         12
 AltSoftSerial altSerial;
-
+// Keep a counter to periodically refresh the screen
+unsigned long lastWriteTime = 0;
 
 // HELPER FUNCTIONS
-// These are ESC/POS commands as defined in https://sites.google.com/site/whitej/EpsonCmdSet.pdf
+// These are ESC/POS commands as defined in https://github.com/playfultechnology/arduino-VFD-RS232/blob/main/EpsonCmdSet.pdf
 /*
  * Moves cursor to specified position
  * Note that values are 1-indexed, not 0-indexed, so first character of bottom row is (1,2)
@@ -57,6 +58,11 @@ void SetCursor(byte column, byte row){
   altSerial.write(0x24);
   altSerial.write(column);
   altSerial.write(row);
+}
+
+void Initialise(){
+  altSerial.write(0x1B);
+  altSerial.write(0x40);
 }
 
 void Clear(){
@@ -83,6 +89,16 @@ void CursorHome() {
   altSerial.write(0x0B);
 }
 
+void SelfTest() {
+  altSerial.write(0x1F);
+  altSerial.write(0x40);
+}
+
+void DisplayTime(){
+  // From p.36 of http://support.j2rs.com/Documents/OldDocs/VFD%20Pole%20Display.pdf
+  altSerial.write(0x1F);
+  altSerial.write(0x55);  
+}
 
 void setup() {
   // Serial connection to PC
@@ -94,46 +110,22 @@ void setup() {
   pinMode(9, OUTPUT); // Tx 
 
   // Start the software serial emulation on the pins above
+  // Make sure to use the baud rate set using the dip switches on the display (normally 9600 default)
   altSerial.begin(9600);
 
   // Initialise the display
-  altSerial.write(0x1B);
-  altSerial.write(0x40);
-
-  // This clears the screen
-  altSerial.write(0x0C);
-  delay(100);
-  
+  Initialise();
+  // Clear screen
+  Clear();
   // Move the cursor to home position
-  altSerial.write(0x0B);
-  
-  delay(100);
-  
+  CursorHome();
+  // Write some text
   altSerial.write("Well, this is a");
   SetCursor(1,2);
   altSerial.write("surprise!");
-  
+  // Turn off the underline cursor
   CursorOff();
-  // Executes self-test
-  /*
-  altSerial.write(0x1F);
-  altSerial.write(0x40);
-  */
-
-  /*
-  // This displays the time!
-  // From p.36 of http://support.j2rs.com/Documents/OldDocs/VFD%20Pole%20Display.pdf
-  altSerial.write(0x1F);
-  altSerial.write(0x55);
-
-  // This clears the screen
-  altSerial.write(0x0C);
-  // Move the cursor to home position
-  altSerial.write(0x0B);
-  */
 }
-
-unsigned long lastWriteTime = 0;
 
 void loop() {
 /*
