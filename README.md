@@ -1,4 +1,4 @@
-# arduino-VFD
+# arduino-VFD-RS232
 Interfacing a Vacuum Fluorescent Diplay (VFD) with RS-232 interface and ESC/POS command set to Arduino
 
 I acquired an Epson DM-D110 VFD display, sold for use as a till display. https://www.epson.eu/products/sd/pos-display/epson-dm-d110-series
