@@ -46,6 +46,7 @@
 AltSoftSerial altSerial;
 // Keep a counter to periodically refresh the screen
 unsigned long lastWriteTime = 0;
+bool showTime = false;
 
 // HELPER FUNCTIONS
 // These are ESC/POS commands as defined in https://github.com/playfultechnology/arduino-VFD-RS232/blob/main/EpsonCmdSet.pdf
@@ -120,31 +121,41 @@ void setup() {
   // Move the cursor to home position
   CursorHome();
   // Write some text
-  altSerial.write("Well, this is a");
+  altSerial.write("   I used to be a ");
   SetCursor(1,2);
-  altSerial.write("surprise!");
+  altSerial.write("    cash register");
   // Turn off the underline cursor
   CursorOff();
 }
 
-void loop() {
-/*
+void ShowTime() {
   unsigned long now = millis();
   
-  if(now - lastWriteTime > 3000){
+  if(now - lastWriteTime > 999){
     CursorHome();
-    ClearCursorLine();
+    Clear();
     char buffer[20];
     sprintf(buffer, "Time Elapsed: %ds", (millis()/1000));
     altSerial.write(buffer);
     lastWriteTime = now;
   }
-*/
+}
+
+void loop() {
+
+  if(showTime) { ShowTime(); }
+  
   // Pass through any data typed via the serial monitor
   if(Serial.available() > 0) {
     byte c = Serial.read();
     if(c == 0x0A || c == 0x0D) { // 0x0A = \n (newline), 0x0D = \r (Carriage Return)
       CursorHome();
+    }
+    if(c == '-') {
+      Clear();
+    }
+    else if(c == 'z') {
+      showTime = true;
     }
     else {
       altSerial.write(c);
