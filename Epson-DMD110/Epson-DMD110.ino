@@ -10,7 +10,7 @@
  * and between +5V and +15V (Logic "0", or "Space").
  * Thus, some additional hardware is required to convert the serial output from the Arduino GPIO pins
  * One example is shown here: https://sites.google.com/site/whitej/arduinoextras
- * However, a muxh simpler solution is to use an RS232-TTl convertor based on the MAX3232 chip, such as 
+ * However, a much simpler solution is to use an RS232-TTl convertor based on the MAX3232 chip, such as 
  * https://www.ebay.co.uk/itm/264813352756
  * 
  * The pinout of the D110 is exposed via an RJ45 connector, with pinout as follows:
@@ -44,9 +44,6 @@
 // Wiring-S           5         6          4
 // Sanguino          13        14         12
 AltSoftSerial altSerial;
-// Keep a counter to periodically refresh the screen
-unsigned long lastWriteTime = 0;
-bool showTime = false;
 
 // HELPER FUNCTIONS
 // These are ESC/POS commands as defined in https://github.com/playfultechnology/arduino-VFD-RS232/blob/main/EpsonCmdSet.pdf
@@ -128,34 +125,12 @@ void setup() {
   CursorOff();
 }
 
-void ShowTime() {
-  unsigned long now = millis();
-  
-  if(now - lastWriteTime > 999){
-    CursorHome();
-    Clear();
-    char buffer[20];
-    sprintf(buffer, "Time Elapsed: %ds", (millis()/1000));
-    altSerial.write(buffer);
-    lastWriteTime = now;
-  }
-}
-
 void loop() {
-
-  if(showTime) { ShowTime(); }
-  
   // Pass through any data typed via the serial monitor
   if(Serial.available() > 0) {
     byte c = Serial.read();
     if(c == 0x0A || c == 0x0D) { // 0x0A = \n (newline), 0x0D = \r (Carriage Return)
       CursorHome();
-    }
-    if(c == '-') {
-      Clear();
-    }
-    else if(c == 'z') {
-      showTime = true;
     }
     else {
       altSerial.write(c);
